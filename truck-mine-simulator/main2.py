@@ -1,17 +1,11 @@
 import simpy
-import pygame
-import numpy as np
+import matplotlib.pyplot as plt
 from mine import Mine
 
 
 if __name__ == "__main__":
     env = simpy.Environment()
-    mine = Mine(env,
-                camiones_chicos_diamante=6,
-                camiones_chicos_ccc=2,
-                camiones_grandes_ele=2,
-                camiones_grandes_diamante=2)
-
+    mine = Mine(env)
     mine.start_simulation()
 
     total_time = 8 * 60 * 60
@@ -26,103 +20,92 @@ if __name__ == "__main__":
     mine.pala_ele.report()
     mine.pala_dia.report()
 
-    WIDTH = 900
-    HEIGHT = 600
 
-    BG_COLOR = (222, 249, 196)
-    CIRCLE_COLOR = (255, 0, 0)
+    # 2 Camiones grandes diamante
+    print('2 camiones grandes hacia diamante')
 
-    WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-    running_game = True
+    camiones = []
+    tonelaje = []
+    eficiencia = []
 
-    local_positions = { "INIT" : (623, 387),
-                        "11" : (683, 370),
-                        "Hanancocha" : (718, 546),
-                        "DispatchA" : (663, 248),
-                        "DispatchB" : (646, 230),
-                        "L" : (712, 173),
-                        "TacariA" : (318, 279),
-                        "TacariB" : (305, 261),
-                        "TacariC" : (295, 276),
-                        "Rumiallana" : (141, 415),
-                        "C" : (249, 72),
-                        "Diamante" : (529, 93),
-                        "Placas" : (548, 306)
-                        }
+    print('# Camiones chicos, Tonelaje, Eficiencia')
 
-    edges = [("INIT", "11"),
-             ("11", "DispatchA"),
-             ("DispatchB", "L"),
-             ("DispatchB", "TacariA"),
-             ("DispatchA", "Placas"),
-             ("11", "Hanancocha"),
-             ("TacariB", "C"),
-             ("TacariB", "Diamante"),
-             ("TacariC", "Rumiallana"),
-    ]
+    for i in range(11):
+        env = simpy.Environment()
+        mine = Mine(env, camiones_chicos_diamante=i, camiones_grandes_diamante=2)
+        mine.start_simulation()
 
-    local_circles = { "INIT" : ((623, 387), 15, (230, 131, 105)),
-                      "11" : ((683, 370), 5, (230, 131, 105)),
-                      "L" : ((712, 173), 15, (150, 201, 244)),
-                      "C" : ((249, 72), 15, (150, 201, 244)),
-                      "Diamante" : ((529, 93), 15, (150, 201, 244)),
-                      "Rumiallana" : ((141, 415), 15, (233, 196, 106)),
-                      "Hanancocha" : ((718, 546), 15, (233, 196, 106)),
-                      "Placas" : ((548, 306), 15, (255, 177, 177)),
-                      "Tacari" : ((305, 271), 18, (247, 249, 242)),
-                      "Dispatch" : ((653, 237), 18, (247, 249, 242))
-    }
+        total_time = 8 * 60 * 60
+        env.run(until=total_time)
 
-    # print(mine.trucks[0].find_position_at_time(10))
+        using_time = mine.pala_dia.data['using_time']
 
-    clock = pygame.time.Clock()
-    current_time = 0
-    dt = 0.1
+        camiones.append(i)
+        tonelaje.append(mine.placas.data['reserved_tons'])
+        eficiencia.append(mine.pala_dia.data['using_time'] / total_time * 100)
 
-    pygame.display.set_caption("Truck mine simulation")
+        print(i, mine.placas.data['reserved_tons'], using_time / total_time * 100)
 
-    while running_game:
-        current_time += dt
+    plt.xlabel('Numero de camiones chicos')
+    plt.ylabel('Tonelaje')
+    plt.title('Tonelaje vs Numero de camiones chicos (2 camiones grandes)')
+    plt.xticks([i for i in range(11)])
+    plt.plot(camiones, tonelaje, color='orange')
+    plt.scatter(camiones, tonelaje, color='orange')
+    plt.show()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running_game = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                print(pos)
+    print('')
 
-        WIN.fill(BG_COLOR)
+    plt.xlabel('Numero de camiones chicos')
+    plt.ylabel('Eficiencia')
+    plt.title('Eficiencia vs Numero de camiones chicos (2 camiones grandes)')
+    plt.xticks([i for i in range(11)])
+    plt.plot(camiones, eficiencia, color='orange')
+    plt.scatter(camiones, eficiencia, color='orange')
+    plt.show()
 
-        for name, position in local_positions.items():
-            pygame.draw.circle(WIN, CIRCLE_COLOR, position, 4)
+    print('')
 
-        for start, end in edges:
-            color = (64, 93, 114)
-            pygame.draw.line(WIN, color, local_positions[start], local_positions[end])
+    #1 Camion grandes diamante
 
-        for name, position in local_circles.items():
-            pos, radius, color = position
-            pygame.draw.circle(WIN, (0, 0, 0), pos, radius * 1.2)
-            pygame.draw.circle(WIN, color, pos, radius)
+    print('1 camion grande hacia diamante')
 
-        for truck in mine.trucks:
-            #print(current_time, end='')
-            start, end, prop = truck.find_position_at_time(current_time)
+    camiones = []
+    tonelaje = []
+    eficiencia = []
 
-            p_start = np.array(local_positions[start])
-            p_end = np.array(local_positions[end])
+    print('# Camiones chicos, Tonelaje, Eficiencia')
 
-            current_pos = p_start + prop * (p_end - p_start)
+    for i in range(11):
+      env = simpy.Environment()
+      mine = Mine(env, camiones_chicos_diamante=i, camiones_grandes_diamante=1)
+      mine.start_simulation()
 
-            color = (19, 24, 66)
-            radius = 5
+      total_time = 8 * 60 * 60
+      env.run(until=total_time)
 
-            if truck.data['size'] == mine.BIG:
-                color = (169, 29, 58)
-                radius *= 1.5
+      camiones.append(i)
+      tonelaje.append(mine.placas.data['reserved_tons'])
+      eficiencia.append(mine.pala_dia.data['using_time'] / total_time * 100)
 
-            pygame.draw.circle(WIN, color, current_pos, radius)
+      using_time = mine.pala_dia.data['using_time']
+      print(i, mine.placas.data['reserved_tons'], using_time / total_time * 100)
 
-        pygame.display.update()
 
-    pygame.quit()
+    plt.xlabel('Numero de camiones chicos')
+    plt.ylabel('Tonelaje')
+    plt.title('Tonelaje vs Numero de camiones chicos (1 camion grande)')
+    plt.xticks([i for i in range(11)])
+    plt.plot(camiones, tonelaje, color='orange')
+    plt.scatter(camiones, tonelaje, color='orange')
+    plt.show()
+
+    print('')
+
+    plt.xlabel('Numero de camiones chicos')
+    plt.ylabel('Eficiencia')
+    plt.title('Eficiencia vs Numero de camiones chicos (1 camion grande)')
+    plt.xticks([i for i in range(11)])
+    plt.plot(camiones, eficiencia, color='orange')
+    plt.scatter(camiones, eficiencia, color='orange')
+    plt.show()

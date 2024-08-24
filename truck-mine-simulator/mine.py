@@ -201,3 +201,4 @@ class Mine:
         # Camiones chicos plan C
         data = {'size' : self.SMALL, 'direction' : self.PLAN_CCC}
         self.env.process(self.generate_trucks(self.camiones_chicos_ccc, data, 120))
+
